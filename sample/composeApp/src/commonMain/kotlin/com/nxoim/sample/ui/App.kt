@@ -49,6 +49,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -185,12 +186,12 @@ private fun Demos(
             }
 
             DemoContainer(Modifier.weight(1f)) {
-                AnchoredDraggableCircle(spec = selectedSpec.derive())
+                AnchoredDraggableCircle(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
             }
         }
 
         DemoContainer(modifier = Modifier.height(400.dp)) {
-            ChainedCircles(spec = selectedSpec.derive())
+            ChainedCircles(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
         }
     }
 }
@@ -637,3 +638,13 @@ val animationTypes = mapOf<String, SpringSpec<Float>>(
     "Smooth" to NotCupertinoDefaultSprings.smooth(),
     "Snappy" to NotCupertinoDefaultSprings.snappy()
 )
+
+val Float.Companion.halfAPixel
+    @Composable
+    @ReadOnlyComposable
+    get() = 0.5f * LocalDensity.current.density
+
+val Offset.Companion.halfAPixel
+    @Composable
+    @ReadOnlyComposable
+    get() = Offset(0.5f, 0.5f) * LocalDensity.current.density
