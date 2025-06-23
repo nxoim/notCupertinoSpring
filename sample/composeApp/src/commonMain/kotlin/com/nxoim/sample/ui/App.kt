@@ -46,7 +46,6 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -170,17 +169,17 @@ private fun Demos(
     ) {
         DemoContainer(Modifier.height(200.dp)) {
             RepeatingSpringCircle(
-                spec = selectedSpec,
+                specForPercentages = selectedSpec.derive(visibilityThreshold = 0.0001f),
                 initialVelocity = 20f
             )
         }
 
         DemoContainer(Modifier.height(200.dp)) {
-            AnchoredDraggableCircle(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
+            AnchoredDraggableCircle(specForPixels = selectedSpec.derive(visibilityThreshold = Offset.onePixel))
         }
 
         DemoContainer(modifier = Modifier.height(400.dp)) {
-            ChainedCircles(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
+            ChainedCircles(specForPixels = selectedSpec.derive(visibilityThreshold = Offset.onePixel))
         }
     }
 }
@@ -229,16 +228,16 @@ private fun AnimationTypeSelector(
 
 @Composable
 private fun RepeatingSpringCircle(
-    spec: FiniteAnimationSpec<Float>,
+    specForPercentages: FiniteAnimationSpec<Float>,
     initialVelocity: Float
 ) {
     val progressAnimatable = remember { Animatable(0f) }
 
-    LaunchedEffect(spec) {
+    LaunchedEffect(specForPercentages) {
         while (true) {
             progressAnimatable.animateTo(
                 if (progressAnimatable.value <= 0f) 1f else 0f,
-                spec,
+                specForPercentages,
                 initialVelocity = if (progressAnimatable.value <= 0f) initialVelocity else -initialVelocity
             )
         }
@@ -271,7 +270,7 @@ private fun RepeatingSpringCircle(
 }
 
 @Composable
-private fun AnchoredDraggableCircle(spec: FiniteAnimationSpec<Offset>) {
+private fun AnchoredDraggableCircle(specForPixels: FiniteAnimationSpec<Offset>) {
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val boxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val circleRadiusPx = with(LocalDensity.current) { 25.dp.toPx() }
@@ -314,7 +313,7 @@ private fun AnchoredDraggableCircle(spec: FiniteAnimationSpec<Offset>) {
                             animate(
                                 initialValue = offset,
                                 targetValue = target,
-                                animationSpec = spec,
+                                animationSpec = specForPixels,
                                 initialVelocity = dragVelocity.run { Offset(x, y) },
                                 typeConverter = Offset.VectorConverter
                             ) { value, _ ->
@@ -350,7 +349,7 @@ private fun DrawScope.drawAnchor(center: Offset, radius: Float) {
 
 
 @Composable
-private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
+private fun ChainedCircles(specForPixels: FiniteAnimationSpec<Offset>) {
     val scope = rememberCoroutineScope()
     val colorScheme = MaterialTheme.colorScheme
     var animationJob by remember { mutableStateOf<Job?>(null) }
@@ -360,9 +359,9 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
         val circleRadius = 15.dp
 
         var mainCircleOffset by remember { mutableStateOf(center) }
-        val follower1Offset = animateOffsetAsState(mainCircleOffset, spec)
-        val follower2Offset = animateOffsetAsState(follower1Offset.value, spec)
-        val follower3Offset = animateOffsetAsState(follower2Offset.value, spec)
+        val follower1Offset = animateOffsetAsState(mainCircleOffset, specForPixels)
+        val follower2Offset = animateOffsetAsState(follower1Offset.value, specForPixels)
+        val follower3Offset = animateOffsetAsState(follower2Offset.value, specForPixels)
 
         Canvas(
             modifier = Modifier.fillMaxSize()
@@ -420,7 +419,7 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
                             animate(
                                 initialValue = mainCircleOffset,
                                 targetValue = center,
-                                animationSpec = spec,
+                                animationSpec = specForPixels,
                                 initialVelocity = dragVelocity.run { Offset(x, y) },
                                 typeConverter = Offset.VectorConverter
                             ) { value, _ ->
@@ -648,20 +647,13 @@ fun <T> SpringSpec<*>.derive(visibilityThreshold: T? = null) =
     SpringSpec(this.dampingRatio, this.stiffness, visibilityThreshold)
 
 val animationTypes = mapOf<String, SpringSpec<Float>>(
-    "Default" to com.nxoim.sample.notCupertinoSpring.spring(),
-    "Custom" to spring(), // placeholder sspring spec
+    "Default" to spring(),
+    "Custom" to spring(), // placeholder spring spec
     "Interactive" to NotCupertinoDefaultSprings.interactiveSpring(),
     "Bouncy" to NotCupertinoDefaultSprings.bouncy(),
     "Smooth" to NotCupertinoDefaultSprings.smooth(),
     "Snappy" to NotCupertinoDefaultSprings.snappy()
 )
 
-val Float.Companion.halfAPixel
-    @Composable
-    @ReadOnlyComposable
-    get() = 0.5f * LocalDensity.current.density
-
-val Offset.Companion.halfAPixel
-    @Composable
-    @ReadOnlyComposable
-    get() = Offset(0.5f, 0.5f) * LocalDensity.current.density
+val Offset.Companion.onePixel: Offset
+    get() = Offset(1f, 1f)

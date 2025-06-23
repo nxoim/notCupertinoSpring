@@ -18,6 +18,7 @@ package com.nxoim.sample.ui
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateTo
 import androidx.compose.foundation.OverscrollEffect
@@ -85,16 +86,10 @@ private data class OverscrollAvailableDelta(
     val newOverscrollValue: Float
 )
 /**
- * NotCupertinoOverscrollEffect
- *
- * @param density to be taken into consideration during computations;
- * NotCupertino formulas use DPs, and scroll machinery uses raw values.
- *
  * @param applyClip Some consumers of overscroll effect apply clip by themselves and some don't,
  * thus this flag is needed to update our modifier chain and make the clipping correct in every case while avoiding redundancy
  */
 class NotCupertinoOverscrollEffect(
-    private val density: Float,
     val applyClip: Boolean,
     private val animationSpec: AnimationSpec<Float>
 ) : OverscrollEffect {
@@ -125,6 +120,10 @@ class NotCupertinoOverscrollEffect(
      * [Modifier.offset] within [effectModifier]
      */
     private var overscrollOffsetState = mutableStateOf(Offset.Zero)
+
+    /**
+     * In pixels
+     */
     var overscrollOffset: Offset
         get () = overscrollOffsetState.value
         private set(value) {
@@ -375,23 +374,34 @@ class NotCupertinoOverscrollEffect(
         springAnimationScope?.run {
             AnimationState(
                 Float.VectorConverter,
-                initialValue / density,
+                initialValue,
                 when (reason) {
                     // boost the spring
-                    SpringAnimationReason.FLING_FROM_OVERSCROLL -> -(initialValue * 5f)
-                    SpringAnimationReason.POSSIBLE_SPRING_IN_THE_END -> initialVelocity / density
+                    SpringAnimationReason.FLING_FROM_OVERSCROLL -> -(initialValue * 15f)
+                    SpringAnimationReason.POSSIBLE_SPRING_IN_THE_END -> initialVelocity
                 }
             ).animateTo(
                 targetValue = 0f,
-                animationSpec = animationSpec
+                animationSpec = animationSpec.run {
+                    if (this is SpringSpec<*>)
+                        // create a new spec to force the 1 pixel threshold
+                        androidx.compose.animation.core.spring(
+                            dampingRatio = this.dampingRatio,
+                            stiffness = this.stiffness,
+                            visibilityThreshold = 1f // 1 pixel
+                        )
+                    else
+                            this
+                }
             ) {
-                overscrollOffset = (value * density).toOffset()
-                currentVelocity = velocity * density
+                overscrollOffset = value.toOffset()
+                currentVelocity = velocity
 
                 // NOTE: THE BLOCK BELOW CAUSES ISSUES WHEN INITIAL
                 // VELOCITY WAS 0 AND TARGET WAS REACHED EVEN THOUGH
                 // ANIMATION WAS NOT FINISHED.
-                if (reason == SpringAnimationReason.FLING_FROM_OVERSCROLL &&
+                if (
+                    reason == SpringAnimationReason.FLING_FROM_OVERSCROLL &&
                     initialSign != 0f &&
                     sign(value) != initialSign
                 ) {
@@ -419,13 +429,10 @@ class NotCupertinoOverscrollEffect(
             return Offset.Zero
         }
 
-        val dpOffset = this / density
-        val dpSize = scrollSize / density
-
         return Offset(
-            rubberBandedValue(dpOffset.x, dpSize.width, RUBBER_BAND_COEFFICIENT),
-            rubberBandedValue(dpOffset.y, dpSize.height, RUBBER_BAND_COEFFICIENT)
-        ) * density
+            rubberBandedValue(this.x, scrollSize.width, RUBBER_BAND_COEFFICIENT),
+            rubberBandedValue(this.y, scrollSize.height, RUBBER_BAND_COEFFICIENT)
+        )
     }
 
     /*
