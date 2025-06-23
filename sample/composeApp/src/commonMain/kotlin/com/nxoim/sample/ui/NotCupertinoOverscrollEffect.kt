@@ -347,7 +347,7 @@ class NotCupertinoOverscrollEffect(
         val velocity = initialVelocity.toFloat()
         val overscroll = overscrollOffset.toFloat()
 
-        return if ((velocity <= 0f && overscroll > 0f) || (velocity >= 0f && overscroll < 0f)) {
+        return if (overscroll != 0f) {
             playSpringAnimation(
                 unconsumedDelta = 0f,
                 velocity,
