@@ -300,6 +300,7 @@ private fun AnchoredDraggableCircle(spec: FiniteAnimationSpec<Offset>) {
                     onDragStarted = {
                         animationJob?.cancel()
                     },
+                    startDragImmediately = true,
                     onDragStopped = { dragVelocity ->
                         val target = if (abs(dragVelocity.x) > velocityThreshold) {
                             if (dragVelocity.x > 0) rightAnchor else leftAnchor
@@ -410,6 +411,7 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
                             mainCircleOffset += delta
                         }
                     },
+                    startDragImmediately = true,
                     onDragStarted = {
                         animationJob?.cancel()
                     },
