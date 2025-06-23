@@ -417,14 +417,9 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
                     },
                     onDragStopped = { dragVelocity ->
                         animationJob = scope.launch {
-//                            mainCircleOffset.animateTo(
-//                                targetValue = mainCircleOffset.,
-//                                animationSpec = spec,
-//                                initialVelocity = dragVelocity.run { Offset(x, y) }
-//                            )
                             animate(
                                 initialValue = mainCircleOffset,
-                                targetValue = mainCircleOffset,
+                                targetValue = center,
                                 animationSpec = spec,
                                 initialVelocity = dragVelocity.run { Offset(x, y) },
                                 typeConverter = Offset.VectorConverter
