@@ -13,7 +13,7 @@ import com.nxoim.sample.notCupertinoSpring.PhysicsBasedSpring
 fun rememberNotCupertinoOverscrollFactory(
     animationSpec: AnimationSpec<Float> = PhysicsBasedSpring.spring(
         response = 0.4,
-        dampingFraction = 1.1f
+        dampingFraction = 1.05f
         // visibility threshold is enforced in the overscroll effect
     )
 ): NotCupertinoOverscrollEffectFactory {
