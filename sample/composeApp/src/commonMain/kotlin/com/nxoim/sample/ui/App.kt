@@ -11,7 +11,6 @@ import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.layout.Arrangement
@@ -20,10 +19,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,7 +33,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberOverscrollEffect
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -60,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -67,7 +65,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -92,7 +89,6 @@ import kotlin.time.Duration.Companion.seconds
 fun App() {
     var selectedType by remember { mutableStateOf(animationTypes.keys.first()) }
     val selectedSpec = animationTypes[selectedType]!!
-    val scrollState = rememberScrollState()
 
     var showCustomSpringDialog by remember { mutableStateOf(false) } // New state for dialog
     var customSpring by remember { mutableStateOf<SpringSpec<Float>?>(null) } // Store custom spring
@@ -174,20 +170,15 @@ private fun Demos(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            modifier = Modifier.height(200.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            DemoContainer(Modifier.fillMaxHeight().aspectRatio(1f)) {
-                RepeatingSpringCircle(
-                    spec = selectedSpec,
-                    initialVelocity = 20f
-                )
-            }
+        DemoContainer(Modifier.height(200.dp)) {
+            RepeatingSpringCircle(
+                spec = selectedSpec,
+                initialVelocity = 20f
+            )
+        }
 
-            DemoContainer(Modifier.weight(1f)) {
-                AnchoredDraggableCircle(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
-            }
+        DemoContainer(Modifier.height(200.dp)) {
+            AnchoredDraggableCircle(spec = selectedSpec.derive(visibilityThreshold = Offset.halfAPixel))
         }
 
         DemoContainer(modifier = Modifier.height(400.dp)) {
@@ -363,29 +354,19 @@ private fun DrawScope.drawAnchor(center: Offset, radius: Float) {
 private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
     val scope = rememberCoroutineScope()
     val colorScheme = MaterialTheme.colorScheme
+    var animationJob by remember { mutableStateOf<Job?>(null) }
 
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val center = remember { Offset(constraints.maxWidth / 2f, constraints.maxHeight / 2f) }
         val circleRadius = 15.dp
 
-        val mainCircleOffset = remember {
-            Animatable(center, Offset.VectorConverter)
-        }
-        val follower1Offset = animateOffsetAsState(mainCircleOffset.value, spec)
+        var mainCircleOffset by remember { mutableStateOf(center) }
+        val follower1Offset = animateOffsetAsState(mainCircleOffset, spec)
         val follower2Offset = animateOffsetAsState(follower1Offset.value, spec)
         val follower3Offset = animateOffsetAsState(follower2Offset.value, spec)
 
         Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        scope.launch {
-                            mainCircleOffset.snapTo(mainCircleOffset.value + dragAmount)
-                        }
-                    }
-                }
+            modifier = Modifier.fillMaxSize()
         ) {
             drawLine(
                 Color.Gray,
@@ -404,7 +385,7 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
             drawLine(
                 Color.Gray,
                 follower1Offset.value,
-                mainCircleOffset.value,
+                mainCircleOffset,
                 2.dp.toPx(),
                 cap = StrokeCap.Round
             )
@@ -416,9 +397,46 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
                     center = follower.value
                 )
             }
-
-            mainCircle(colorScheme.primary, circleRadius.toPx(), mainCircleOffset.value)
         }
+
+        Spacer(
+            modifier = Modifier
+                .offset { mainCircleOffset.round() - center.round() }
+                .draggable2D(
+                    state = rememberDraggable2DState { delta ->
+                        scope.launch {
+                            mainCircleOffset += delta
+                        }
+                    },
+                    onDragStarted = {
+                        animationJob?.cancel()
+                    },
+                    onDragStopped = { dragVelocity ->
+                        animationJob = scope.launch {
+//                            mainCircleOffset.animateTo(
+//                                targetValue = mainCircleOffset.,
+//                                animationSpec = spec,
+//                                initialVelocity = dragVelocity.run { Offset(x, y) }
+//                            )
+                            animate(
+                                initialValue = mainCircleOffset,
+                                targetValue = mainCircleOffset,
+                                animationSpec = spec,
+                                initialVelocity = dragVelocity.run { Offset(x, y) },
+                                typeConverter = Offset.VectorConverter
+                            ) { value, _ ->
+                                if (isActive) mainCircleOffset = value
+                            }
+                        }
+                    }
+                )
+                .drawWithContent() {
+                    val drawCenter = Offset(size.width / 2f, size.height / 2f)
+                    mainCircle(colorScheme.primary, circleRadius.toPx(), drawCenter)
+                }
+                .size(circleRadius * 3)
+        )
+
         Text(
             text = "Drag the main circle",
             modifier = Modifier
