@@ -104,7 +104,7 @@ fun App() {
         LocalOverscrollFactory provides rememberNotCupertinoOverscrollFactory()
     ) {
         val listOverscrollEffect = rememberOverscrollEffect()
-        val overscrollVisualEffectThreshold = with(LocalDensity.current) { 32.dp.toPx() }
+        val overscrollVisualEffectThreshold = with(LocalDensity.current) { 128.dp.toPx() }
 
         SampleTheme {
             LazyColumn(
@@ -124,17 +124,15 @@ fun App() {
                                 .padding(vertical = 16.dp)
                                 .graphicsLayer() {
                                     (listOverscrollEffect as? NotCupertinoOverscrollEffect)?.let { listOverscrollEffect ->
-                                        val progress = listOverscrollEffect.overscrollOffset.y.let {
-                                            1f - (overscrollVisualEffectThreshold / it)
-                                        }
+                                        val progress = (listOverscrollEffect.overscrollOffset.y / overscrollVisualEffectThreshold)
+                                                .coerceAtLeast(0f)
 
-                                        val scale = lerp(1f, 1.2f, progress).coerceIn(1f, 1.2f)
+                                        val scale = lerp(1f, 1.05f, progress)
 
                                         scaleX = scale
                                         scaleY = scale
                                     }
                                 }
-
                         )
 
                         AnimationTypeSelector(
@@ -390,7 +388,11 @@ private fun ChainedCircles(spec: FiniteAnimationSpec<Offset>) {
                 cap = StrokeCap.Round
             )
 
-            listOf(follower1Offset, follower2Offset, follower3Offset).forEachIndexed { index, follower ->
+            listOf(
+                follower1Offset,
+                follower2Offset,
+                follower3Offset
+            ).forEachIndexed { index, follower ->
                 drawCircle(
                     color = Color.Gray.copy(alpha = 1f - (index * 0.2f)),
                     radius = circleRadius.toPx(),

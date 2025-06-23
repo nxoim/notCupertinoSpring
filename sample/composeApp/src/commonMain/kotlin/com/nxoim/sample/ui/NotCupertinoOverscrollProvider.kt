@@ -9,15 +9,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import com.nxoim.sample.notCupertinoSpring.spring
-import kotlin.time.Duration.Companion.milliseconds
+import com.nxoim.sample.notCupertinoSpring.PhysicsBasedSpring
 
 @Composable
 fun rememberNotCupertinoOverscrollFactory(
-    animationSpec: AnimationSpec<Float> = spring(
-        duration = 400.milliseconds,
-        bounce = 0f,
-        visibilityThreshold = 0.5f * LocalDensity.current.density
+    animationSpec: AnimationSpec<Float> = PhysicsBasedSpring.spring(
+        response = 0.4,
+        dampingFraction = 1.2f,
+        visibilityThreshold = 0.2f * LocalDensity.current.density
     )
 ): NotCupertinoOverscrollEffectFactory {
     val density = LocalDensity.current
