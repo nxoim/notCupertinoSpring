@@ -9,6 +9,7 @@ import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable2D
@@ -17,9 +18,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,12 +30,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +47,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -98,35 +103,63 @@ fun App() {
             else selectedSpec
         }
     }
-    SampleTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Totally not cupertino springs",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+    CompositionLocalProvider(
+        LocalOverscrollFactory provides rememberNotCupertinoOverscrollFactory()
+    ) {
+        val listOverscrollEffect = rememberOverscrollEffect()
+        val overscrollVisualEffectThreshold = with(LocalDensity.current) { 32.dp.toPx() }
 
-            AnimationTypeSelector(
-                types = animationTypes.keys.toList(),
-                selectedType = selectedType,
-                onTypeSelected = {
-                    selectedType = it
-                    if (it == "Custom") showCustomSpringDialog = true
+        SampleTheme {
+            LazyColumn(
+                contentPadding = WindowInsets.systemBars.asPaddingValues(),
+                overscrollEffect = listOverscrollEffect,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Totally not cupertino springs",
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier
+                                .padding(vertical = 16.dp)
+                                .graphicsLayer() {
+                                    (listOverscrollEffect as? NotCupertinoOverscrollEffect)?.let { listOverscrollEffect ->
+                                        val progress = listOverscrollEffect.overscrollOffset.y.let {
+                                            1f - (overscrollVisualEffectThreshold / it)
+                                        }
+
+                                        val scale = lerp(1f, 1.2f, progress).coerceIn(1f, 1.2f)
+
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
+                                }
+
+                        )
+
+                        AnimationTypeSelector(
+                            types = animationTypes.keys.toList(),
+                            selectedType = selectedType,
+                            onTypeSelected = {
+                                selectedType = it
+                                showCustomSpringDialog = it == "Custom"
+                            }
+                        )
+
+                        AnimatedVisibility(visible = showCustomSpringDialog) {
+                            SpringCustomizer(
+                                onSpringCreated = { spring -> customSpring = spring },
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+
+                        Demos(selectedSpec = finalSpec, Modifier.padding(16.dp))
+                    }
                 }
-            )
-
-            AnimatedVisibility(visible = showCustomSpringDialog) {
-                SpringCustomizer(
-                    onSpringCreated = { spring -> customSpring = spring },
-                    modifier = Modifier.padding(16.dp)
-                )
             }
-            Demos(selectedSpec = finalSpec, Modifier.padding(16.dp))
         }
     }
 }
@@ -141,7 +174,7 @@ private fun Demos(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+            modifier = Modifier.height(200.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             DemoContainer(Modifier.fillMaxHeight().aspectRatio(1f)) {
@@ -156,7 +189,7 @@ private fun Demos(
             }
         }
 
-        DemoContainer {
+        DemoContainer(modifier = Modifier.height(400.dp)) {
             ChainedCircles(spec = selectedSpec.derive())
         }
     }
@@ -171,8 +204,7 @@ private fun DemoContainer(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .fillMaxWidth()
-            .height(200.dp),
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         content()
@@ -599,10 +631,9 @@ fun <T> SpringSpec<*>.derive(visibilityThreshold: T? = null) =
 
 val animationTypes = mapOf<String, SpringSpec<Float>>(
     "Default" to com.nxoim.sample.notCupertinoSpring.spring(),
+    "Custom" to spring(), // placeholder sspring spec
     "Interactive" to NotCupertinoDefaultSprings.interactiveSpring(),
     "Bouncy" to NotCupertinoDefaultSprings.bouncy(),
     "Smooth" to NotCupertinoDefaultSprings.smooth(),
-    "Snappy" to NotCupertinoDefaultSprings.snappy(),
-    "Scrolling" to NotCupertinoDefaultSprings.scrolling(),
-    "Custom" to spring()
+    "Snappy" to NotCupertinoDefaultSprings.snappy()
 )

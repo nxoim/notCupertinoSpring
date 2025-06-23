@@ -34,12 +34,6 @@ object NotCupertinoDefaultSprings {
         visibilityThreshold = visibilityThreshold
     )
 
-    fun <T> scrolling(visibilityThreshold: T? = null) = spring(
-        duration = 350.milliseconds,
-        bounce = 0f,
-        visibilityThreshold = visibilityThreshold
-    )
-
     fun <T> interactiveSpring(visibilityThreshold: T? = null) = spring(
         duration = 150.milliseconds,
         visibilityThreshold = visibilityThreshold
