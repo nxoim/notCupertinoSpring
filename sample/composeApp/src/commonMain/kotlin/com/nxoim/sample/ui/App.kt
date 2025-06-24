@@ -432,7 +432,7 @@ private fun ChainedCircles(specForPixels: FiniteAnimationSpec<Offset>) {
                     val drawCenter = Offset(size.width / 2f, size.height / 2f)
                     mainCircle(colorScheme.primary, circleRadius.toPx(), drawCenter)
                 }
-                .size(circleRadius * 3)
+                .size(circleRadius * 6)
         )
 
         Text(
