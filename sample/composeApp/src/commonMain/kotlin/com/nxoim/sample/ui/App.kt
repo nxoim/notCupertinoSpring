@@ -69,9 +69,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.util.lerp
-import com.nxoim.sample.notCupertinoSpring.NotCupertinoDefaultSprings
 import com.nxoim.sample.notCupertinoSpring.PhysicsBasedSpring
 import com.nxoim.sample.notCupertinoSpring.SettlingDurationSpring
+import com.nxoim.sample.notCupertinoSpring.bouncy
+import com.nxoim.sample.notCupertinoSpring.interactiveSpring
+import com.nxoim.sample.notCupertinoSpring.smooth
+import com.nxoim.sample.notCupertinoSpring.snappy
 import com.nxoim.sample.notCupertinoSpring.spring
 import com.nxoim.sample.ui.theme.SampleTheme
 import kotlinx.coroutines.Job
@@ -649,10 +652,10 @@ fun <T> SpringSpec<*>.derive(visibilityThreshold: T? = null) =
 val animationTypes = mapOf<String, SpringSpec<Float>>(
     "Default" to spring(),
     "Custom" to spring(), // placeholder spring spec
-    "Interactive" to NotCupertinoDefaultSprings.interactiveSpring(),
-    "Bouncy" to NotCupertinoDefaultSprings.bouncy(),
-    "Smooth" to NotCupertinoDefaultSprings.smooth(),
-    "Snappy" to NotCupertinoDefaultSprings.snappy()
+    "Interactive" to interactiveSpring(),
+    "Bouncy" to bouncy(),
+    "Smooth" to smooth(),
+    "Snappy" to snappy()
 )
 
 val Offset.Companion.onePixel: Offset
