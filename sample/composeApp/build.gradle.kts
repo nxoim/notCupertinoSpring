@@ -26,8 +26,6 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            export(libs.essenty.lifecycle)
-            export(libs.essenty.stateKeeper)
         }
     }
 
@@ -79,8 +77,7 @@ kotlin {
         }
 
         iosMain.dependencies {
-            api(libs.essenty.lifecycle)
-            api(libs.essenty.stateKeeper)
+
         }
 
         androidMain.dependencies {
