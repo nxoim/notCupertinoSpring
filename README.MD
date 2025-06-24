@@ -13,7 +13,7 @@ I also edited the overscroll effect implementation to feel more accurate. The us
 ```kotlin
 spring() // the default duration based spring with 500ms duration and 0 bounce
 // or like
-smooth(extraBounce = 0.3f) // btw all return are the compose SpringSpec<T>
+smooth(extraBounce = 0.3f) // btw all return the compose SpringSpec<T>
 // or like
 spring(duration = 200.milliseconds, bounce = 0.3f)
 // or like
