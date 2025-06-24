@@ -17,7 +17,7 @@ smooth(extraBounce = 0.3f) // btw all return the compose SpringSpec<T>
 // or like
 spring(duration = 200.milliseconds, bounce = 0.3f)
 // or like
-PhysicaBasedSpring.spring(response = 0.2, dampingFraction = 0.6f)
+PhysicsBasedSpring.spring(response = 0.2, dampingFraction = 0.6f)
 ```
 
 # Note:
