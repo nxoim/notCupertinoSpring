@@ -377,7 +377,7 @@ class NotCupertinoOverscrollEffect(
                 initialValue,
                 when (reason) {
                     // boost the spring
-                    SpringAnimationReason.FLING_FROM_OVERSCROLL -> -(initialValue * 10f)
+                    SpringAnimationReason.FLING_FROM_OVERSCROLL -> initialVelocity - (initialValue * 10f)
                     SpringAnimationReason.POSSIBLE_SPRING_IN_THE_END -> initialVelocity
                 }
             ).animateTo(
