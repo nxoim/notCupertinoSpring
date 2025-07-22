@@ -1,7 +1,7 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-![example](output.png)
+![example](output.mp4)
 
 # Why?
 1. For funzies
