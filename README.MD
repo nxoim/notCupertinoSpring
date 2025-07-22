@@ -1,7 +1,7 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-![](https://gist.github.com/user-attachments/assets/6a69ccc0-dab6-48ee-b290-0d871eca966c)
+<video loop src="https://gist.github.com/user-attachments/assets/1d1320a4-3dfa-43a9-b8cd-b6c38a5c1a6c"></> 
 
 # Why?
 1. For funzies
