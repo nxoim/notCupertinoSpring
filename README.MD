@@ -1,7 +1,7 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-<video src="output.mp4" controls muted loop></video>
+<video src="output.webm" controls muted loop></video>
 
 # Why?
 1. For funzies
