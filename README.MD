@@ -1,7 +1,7 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-![example](output.gif)
+![example](output.webp)
 
 # Why?
 1. For funzies
