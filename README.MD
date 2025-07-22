@@ -1,7 +1,7 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-<video loop src="https://github.com/nxoim/notCupertinoSpring/raw/refs/heads/readme/output.webm"></> 
+![example](https://github.com/nxoim/notCupertinoSpring/raw/refs/heads/readme/output.webm)
 
 # Why?
 1. For funzies
