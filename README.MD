@@ -1,7 +1,8 @@
 # What?
 Cupertino flavored Compose Multiplatform spring constructors that are familiar to iOS developers.
 
-![example](https://gist.github.com/user-attachments/assets/1d1320a4-3dfa-43a9-b8cd-b6c38a5c1a6c)
+<video loop src="output.webm"></> 
+
 # Why?
 1. For funzies
 2. Brain cell gain
