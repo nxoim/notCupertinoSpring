@@ -2,6 +2,7 @@ package com.nxoim.sample.notCupertinoSpring
 
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.ui.util.fastCoerceAtMost
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.pow
@@ -40,23 +41,24 @@ fun <T> spring(
 object PhysicsBasedSpring {
     fun <T> spring(
         response: Double = 0.5,
-        dampingFraction: Float = 0.825f,
+        dampingRatio: Float = 0.825f,
         visibilityThreshold: T? = null
     ): SpringSpec<T> {
         require(response > 0) { "response must be positive" }
-        require(dampingFraction > 0) { "dampingFraction must be positive" }
+        require(dampingRatio > 0) { "dampingRatio must be positive" }
 
         return spring(
             stiffness = (2 * PI / response).pow(2).toFloat(),
-            dampingRatio = dampingFraction,
+            dampingRatio = dampingRatio,
             visibilityThreshold = visibilityThreshold
         )
     }
 
     fun <T> spring(
-        mass: Float,
         stiffness: Float,
         damping: Float,
+        mass: Float = 1f,
+        allowOverDamping: Boolean = false,
         visibilityThreshold: T? = null
     ): SpringSpec<T> {
         require(mass > 0) { "mass must be positive" }
@@ -65,7 +67,10 @@ object PhysicsBasedSpring {
 
         // this reads misleading but the result is correct
         return spring(
-            dampingRatio = damping / (2 * sqrt(mass * stiffness)),
+            dampingRatio = (damping / (2 * sqrt(mass * stiffness)))
+                .let {
+                    if (allowOverDamping) it else it.fastCoerceAtMost(1f)
+                },
             stiffness = stiffness / mass,
             visibilityThreshold = visibilityThreshold
         )

@@ -91,7 +91,7 @@ fun SpringCustomizer(
                         onSpringCreated(
                             PhysicsBasedSpring.spring(
                                 response = response.toDouble(),
-                                dampingFraction = dampingFraction
+                                dampingRatio = dampingFraction
                             )
                         )
                     }
