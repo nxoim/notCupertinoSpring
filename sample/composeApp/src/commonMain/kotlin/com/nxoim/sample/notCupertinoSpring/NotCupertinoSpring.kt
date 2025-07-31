@@ -66,7 +66,7 @@ object PhysicsBasedSpring {
         // this reads misleading but the result is correct
         return spring(
             dampingRatio = damping / (2 * sqrt(mass * stiffness)),
-            stiffness = sqrt(stiffness / mass),
+            stiffness = stiffness / mass,
             visibilityThreshold = visibilityThreshold
         )
     }
