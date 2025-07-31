@@ -553,11 +553,11 @@ private fun SpringCustomizer(
                         Slider(
                             value = duration.inWholeMilliseconds.toFloat(),
                             onValueChange = { duration = it.toDouble().milliseconds },
-                            valueRange = 0f..10.seconds.inWholeMilliseconds.toFloat()
+                            valueRange = 0.001f..10.seconds.inWholeMilliseconds.toFloat()
                         )
 
                         Text("Bounce: $bounce")
-                        Slider(value = bounce, onValueChange = { bounce = it }, valueRange = 0f..1f)
+                        Slider(value = bounce, onValueChange = { bounce = it }, valueRange = 0.001f..1f)
                     }
                 }
 
@@ -588,7 +588,7 @@ private fun SpringCustomizer(
                         Slider(
                             value = dampingFraction,
                             onValueChange = { dampingFraction = it },
-                            valueRange = 0f..1f
+                            valueRange = 0.001f..1f
                         )
                     }
                 }
@@ -658,7 +658,7 @@ private fun SpringCustomizer(
                         Slider(
                             value = dampingRatio,
                             onValueChange = { dampingRatio = it },
-                            valueRange = 0f..1f
+                            valueRange = 0.001f..1f
                         )
                     }
                 }
