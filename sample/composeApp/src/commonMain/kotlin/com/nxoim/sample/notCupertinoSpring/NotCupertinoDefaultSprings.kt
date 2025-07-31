@@ -34,7 +34,12 @@ fun <T> snappy(
     visibilityThreshold = visibilityThreshold
 )
 
-fun <T> interactiveSpring(visibilityThreshold: T? = null): SpringSpec<T> = spring(
-    duration = 150.milliseconds,
+fun <T> interactiveSpring(
+    duration: Duration = 150.milliseconds,
+    extraBounce: Float = 0f,
+    visibilityThreshold: T? = null
+): SpringSpec<T> = spring(
+    duration = duration,
+    bounce = 0.14f + extraBounce,
     visibilityThreshold = visibilityThreshold
 )
